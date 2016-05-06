@@ -12,6 +12,7 @@
 		AF149B9B1CD7CB2F005FBB9B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AF149B991CD7CB2F005FBB9B /* Main.storyboard */; };
 		AF149B9D1CD7CB2F005FBB9B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AF149B9C1CD7CB2F005FBB9B /* Assets.xcassets */; };
 		AF149BA01CD7CB2F005FBB9B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AF149B9E1CD7CB2F005FBB9B /* LaunchScreen.storyboard */; };
+		AF3A517A1CDA66600023AE27 /* SongCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF3A51791CDA66600023AE27 /* SongCell.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,6 +23,8 @@
 		AF149B9C1CD7CB2F005FBB9B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AF149B9F1CD7CB2F005FBB9B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		AF149BA11CD7CB30005FBB9B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AF3A51791CDA66600023AE27 /* SongCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SongCell.swift; sourceTree = "<group>"; };
+		AFF7204C1CDBF0370053E52F /* SuperpoweredAnalyzer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SuperpoweredAnalyzer.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,6 +63,8 @@
 				AF149B9C1CD7CB2F005FBB9B /* Assets.xcassets */,
 				AF149B9E1CD7CB2F005FBB9B /* LaunchScreen.storyboard */,
 				AF149BA11CD7CB30005FBB9B /* Info.plist */,
+				AFF7204C1CDBF0370053E52F /* SuperpoweredAnalyzer.h */,
+				AF3A51791CDA66600023AE27 /* SongCell.swift */,
 			);
 			path = "Song Morph";
 			sourceTree = "<group>";
@@ -137,6 +142,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AF149B981CD7CB2F005FBB9B /* ViewController.swift in Sources */,
+				AF3A517A1CDA66600023AE27 /* SongCell.swift in Sources */,
 				AF149B961CD7CB2F005FBB9B /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -252,10 +258,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = "Song Morph/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.Lukemorse.Song-Morph";
+				PRODUCT_BUNDLE_IDENTIFIER = com.Lukemorse.lukesTableView;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Debug;
 		};
@@ -263,10 +272,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = "Song Morph/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.Lukemorse.Song-Morph";
+				PRODUCT_BUNDLE_IDENTIFIER = com.Lukemorse.lukesTableView;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Release;
 		};
@@ -289,6 +301,7 @@
 				AF149BA61CD7CB30005FBB9B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
