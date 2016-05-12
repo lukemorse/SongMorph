@@ -9,18 +9,17 @@
 import UIKit
 import MediaPlayer
 import AudioToolbox
+import AVFoundation
+import OpenAL
 
-class SongCell: UITableViewCell {
+class SongCell: UITableViewCell, NSStreamDelegate {
     
     var selectedSong: MPMediaItem!
-    let outputSettings: [String:Int] =
-        [ AVFormatIDKey: Int(kAudioFormatLinearPCM),
-          AVLinearPCMIsBigEndianKey: 0,
-          AVLinearPCMIsFloatKey: 0,
-          AVLinearPCMBitDepthKey: 16,
-          AVLinearPCMIsNonInterleaved: 0]
+    
+    let audioPlayer = LMAudioPlayer()
     
     @IBOutlet weak var songLbl: UILabel!
+    
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -29,6 +28,8 @@ class SongCell: UITableViewCell {
     
     override func setSelected(selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
+        
+        audioPlayer.createWavOfSelectedSong(selectedSong)
     }
     
     func configureCell(song: MPMediaItem) {
@@ -39,34 +40,8 @@ class SongCell: UITableViewCell {
         selectedSong = song
     }
     
-    func createWavOfSelectedSong() {
-        
-        if let songUrl = selectedSong.assetURL {
-            let asset = AVURLAsset(URL: songUrl)
-            
-            let time: CMTime
-            
-            
-            do {
-                let reader = try AVAssetReader(asset: asset)
-                let track = asset.tracksWithMediaType(AVMediaTypeAudio)[0]
-                let output = AVAssetReaderTrackOutput(track: track, outputSettings: outputSettings)
-                reader.addOutput(output)
-                reader.startReading()
-                let sampleBuffer = output.copyNextSampleBuffer()
-                
-                
-                
-                
-            } catch let err as NSError {
-                print(err.debugDescription)
-            }
-            
-            print(selectedSong.title)
-            
-            
-        }
-        
-    }
+    
+    
+
     
 }

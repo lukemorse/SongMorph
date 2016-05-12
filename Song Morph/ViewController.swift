@@ -19,9 +19,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         super.viewDidLoad()
         
         tableView.dataSource = self
-        tableView.delegate = self
-        
-        
+        tableView.delegate = self        
         
     }
     
