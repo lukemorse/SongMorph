@@ -69,6 +69,7 @@
 		AF149B941CD7CB2F005FBB9B /* Song Morph */ = {
 			isa = PBXGroup;
 			children = (
+				AF2E32291CE6586800878D05 /* Resources */,
 				AF149B951CD7CB2F005FBB9B /* AppDelegate.swift */,
 				AF149B971CD7CB2F005FBB9B /* ViewController.swift */,
 				AF149B991CD7CB2F005FBB9B /* Main.storyboard */,
@@ -76,13 +77,20 @@
 				AF149B9E1CD7CB2F005FBB9B /* LaunchScreen.storyboard */,
 				AF149BA11CD7CB30005FBB9B /* Info.plist */,
 				AF3A51791CDA66600023AE27 /* SongCell.swift */,
-				AFF9A5491CDFC49300132C3E /* OpenAL.framework */,
-				AFF9A54B1CDFC4FC00132C3E /* AudioToolbox.framework */,
-				AFF9A54D1CDFC50F00132C3E /* AVFoundation.framework */,
 				AFF9A5471CDFBE0F00132C3E /* ObjectAL */,
 				AFF9A54F1CE0310000132C3E /* LMAudioPlayer.swift */,
 			);
 			path = "Song Morph";
+			sourceTree = "<group>";
+		};
+		AF2E32291CE6586800878D05 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				AFF9A5491CDFC49300132C3E /* OpenAL.framework */,
+				AFF9A54B1CDFC4FC00132C3E /* AudioToolbox.framework */,
+				AFF9A54D1CDFC50F00132C3E /* AVFoundation.framework */,
+			);
+			name = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

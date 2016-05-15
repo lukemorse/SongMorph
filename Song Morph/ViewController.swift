@@ -48,7 +48,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         
         let cell: SongCell? = tableView.cellForRowAtIndexPath(indexPath) as? SongCell
         
-        cell?.createWavOfSelectedSong()
+//        cell?.createWavOfSelectedSong()
     }
 
 

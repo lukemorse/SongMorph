@@ -27,6 +27,11 @@ class LMAudioPlayer: NSObject, NSStreamDelegate {
         
         if eventCode == NSStreamEvent.HasBytesAvailable {
             // handle incoming data
+            
+            var buffer = [UInt8](count: 512, repeatedValue: 0)
+            
+//            var length = aStream.read(&buffer, maxLength: buffer.count)
+            
         } else if (eventCode == NSStreamEvent.EndEncountered) {
             // notify application that stream has ended
         } else if (eventCode == NSStreamEvent.ErrorOccurred) {
@@ -34,20 +39,85 @@ class LMAudioPlayer: NSObject, NSStreamDelegate {
         }
     }
     
-    func openAudioStream() {
+    func didChangeProperty(property: AudioFileStreamPropertyID, flags: UnsafeMutablePointer<AudioFileStreamPropertyFlags>) {
         
-        var clientData = UnsafeMutablePointer<Void>(unsafeAddressOf(self))
-        let listenerProc: AudioFileStream_PropertyListenerProc()
-        var packetsProc : AudioFileStream_PacketsProc
-//        var audioFileTypyeId : AudioFileTypeID = 0
+        if property == kAudioFileStreamProperty_ReadyToProducePackets {
+            
+            var basicDescription = AudioStreamBasicDescription()
+            let basicDescriptionSize = sizeofValue(basicDescription)
+            
+            var basicDescriptionSize32 = UInt32(basicDescriptionSize)
+            
+            AudioFileStreamGetProperty(audioFileStreamID, kAudioFileStreamProperty_DataFormat, &basicDescriptionSize32, &basicDescription)
+        }
+    }
+    
+    func didReceivePackets(inputData: UnsafePointer<Void>, packetDescriptions: UnsafeMutablePointer<AudioStreamPacketDescription>, numberOfPackets: UInt32, numberOfBytes: UInt32) {
         
-        AudioFileStreamOpen(&clientData,
-                            listenerProc,
-                            packetsProc,
-                            0,
-                            &audioFileStreamID)
         
     }
+    
+    func openAudioStream() {
+        
+//        var clientData = UnsafeMutablePointer<Void>(unsafeAddressOf(self))
+//        let listenerProc: AudioFileStream_PropertyListenerProc()
+//        var packetsProc : AudioFileStream_PacketsProc
+////        var audioFileTypyeId : AudioFileTypeID = 0
+//        
+//        AudioFileStreamOpen(&clientData,
+//                            listenerProc,
+//                            packetsProc,
+//                            0,
+//                            &audioFileStreamID)
+     
+        
+//        var contextObject = UnsafeMutablePointer<Void>(unsafeAddressOf(self))
+        
+//        var contextObject: UnsafeMutablePointer<Void> = nil
+
+        
+        
+        var contextObject: UnsafeMutablePointer<Void> = UnsafeMutablePointer<Void>(Unmanaged.passUnretained(self).toOpaque())
+        
+        typealias AudioFileStream_PropertyListenerProc = @convention(c) (UnsafeMutablePointer<Void>, AudioFileStreamID, AudioFileStreamPropertyID, UnsafeMutablePointer<AudioFileStreamPropertyFlags>) -> Void
+        
+        let inPropertyListenerProc: AudioFileStream_PropertyListenerProc = {
+            (inContext, streamID, inPropertyID, propertyFlags) -> Void in
+            // this is the callback that gets called when there's a new property
+            // probably log some of this stuff to start
+            
+            let mySelf = Unmanaged<LMAudioPlayer>.fromOpaque(COpaquePointer(inContext)).takeUnretainedValue()
+            
+            mySelf.didChangeProperty(inPropertyID, flags: propertyFlags)
+            
+        }
+        
+        typealias AudioFileStream_PacketsProc = @convention(c) (UnsafeMutablePointer<Void>, UInt32, UInt32, UnsafePointer<Void>, UnsafeMutablePointer<AudioStreamPacketDescription>) -> Void
+        
+        let inPacketsListener: AudioFileStream_PacketsProc = {
+            (inContext, inNumberBytes, inNumberPackets, inInputData, inPacketDescriptions) -> Void in
+            // this is the callback that gets called when there are audio data packets
+            
+            let mySelf = Unmanaged<LMAudioPlayer>.fromOpaque(COpaquePointer(inContext)).takeUnretainedValue()
+            
+            mySelf.didReceivePackets(inInputData, packetDescriptions: inPacketDescriptions, numberOfPackets: inNumberPackets, numberOfBytes: inNumberBytes)
+            
+        }
+        
+        // you can set this to something other than nil if you want to pass information to the callbacks in their inContext arguments
+        //    let contextObject: UnsafeMutablePointer<Void> = nil
+        
+        
+        let status = AudioFileStreamOpen(contextObject, inPropertyListenerProc, inPacketsListener, 0,&audioFileStreamID)
+        
+        
+        print(status.description)
+        
+        
+        
+    }
+    
+    
     
     
     
@@ -87,33 +157,10 @@ class LMAudioPlayer: NSObject, NSStreamDelegate {
                 
                 for audioBuffer in abl {
                     
-                    //                    memset(audioBuffer.mData, 0, Int(audioBuffer.mDataByteSize))
-                    
                     outputStream.write(UnsafePointer<UInt8>(audioBuffer.mData), maxLength: Int(audioBuffer.mDataByteSize))
                     
                     
                 }
-                
-                //                while outputStream.hasSpaceAvailable {
-                //
-                //
-                //
-                //                }
-                
-                
-                
-                
-                
-                
-                //                var x: UInt32 = 0
-                //                while x < audioBufferList.mNumberBuffers {
-                //                    let abl = UnsafeMutableAudioBufferListPointer(UnsafeMutablePointer<AudioBufferList>(nil))
-                //                    let audioBuffer: AudioBuffer = abl.
-                //                    //                    let audioStream = audioBuffer
-                //                    x += 1
-                //                }
-                
-                
                 
                 
             } catch let err as NSError {
