@@ -29,7 +29,7 @@ class SongCell: UITableViewCell, NSStreamDelegate {
     override func setSelected(selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
         
-        audioPlayer.createWavOfSelectedSong(selectedSong)
+//        audioPlayer.createWavOfSelectedSong(selectedSong)
     }
     
     func configureCell(song: MPMediaItem) {

@@ -16,6 +16,16 @@ class LMAudioPlayer: NSObject, NSStreamDelegate {
     
     var audioFileStreamID: AudioFileStreamID = nil
     
+    var currentSong: MPMediaItem!
+    
+    var inputStream: NSInputStream!
+    
+    var data: UnsafePointer<Void> = nil
+    
+    var basicDescription: AudioStreamBasicDescription!
+    
+    let audioQueue = AudioQueueRef()
+    
     let outputSettings: [String:Int] =
         [ AVFormatIDKey: Int(kAudioFormatLinearPCM),
           AVLinearPCMIsBigEndianKey: 0,
@@ -30,7 +40,11 @@ class LMAudioPlayer: NSObject, NSStreamDelegate {
             
             var buffer = [UInt8](count: 512, repeatedValue: 0)
             
-//            var length = aStream.read(&buffer, maxLength: buffer.count)
+            let length = UInt32(inputStream.read(&buffer, maxLength: 512))
+            
+            let flag = AudioFileStreamParseFlags(rawValue: 0)
+            
+            AudioFileStreamParseBytes(audioFileStreamID, length, data, flag)
             
         } else if (eventCode == NSStreamEvent.EndEncountered) {
             // notify application that stream has ended
@@ -43,87 +57,38 @@ class LMAudioPlayer: NSObject, NSStreamDelegate {
         
         if property == kAudioFileStreamProperty_ReadyToProducePackets {
             
-            var basicDescription = AudioStreamBasicDescription()
-            let basicDescriptionSize = sizeofValue(basicDescription)
+            basicDescription = AudioStreamBasicDescription()
+            var basicDescriptionSize = sizeofValue(basicDescription)
             
             var basicDescriptionSize32 = UInt32(basicDescriptionSize)
             
             AudioFileStreamGetProperty(audioFileStreamID, kAudioFileStreamProperty_DataFormat, &basicDescriptionSize32, &basicDescription)
+            
+            createAudioQueue()
         }
     }
     
     func didReceivePackets(inputData: UnsafePointer<Void>, packetDescriptions: UnsafeMutablePointer<AudioStreamPacketDescription>, numberOfPackets: UInt32, numberOfBytes: UInt32) {
         
+        data = inputData
+    }
+    
+    func createAudioQueue() {
+        
+//        var unsafe = UnsafePointer<AudioStreamBasicDescription>(basicDescription)
+        
+        var output = AudioQueueNewOutput(basicDescription, AudioQueueOutputCallback, data, nil, nil, 0, &audioQueue)
+        
+        
+        
         
     }
+    
+    typealias AudioQueueOutputCallback = (UnsafeMutablePointer<Void>, AudioQueueRef, AudioQueueBufferRef) -> Void
     
     func openAudioStream() {
         
-//        var clientData = UnsafeMutablePointer<Void>(unsafeAddressOf(self))
-//        let listenerProc: AudioFileStream_PropertyListenerProc()
-//        var packetsProc : AudioFileStream_PacketsProc
-////        var audioFileTypyeId : AudioFileTypeID = 0
-//        
-//        AudioFileStreamOpen(&clientData,
-//                            listenerProc,
-//                            packetsProc,
-//                            0,
-//                            &audioFileStreamID)
-     
-        
-//        var contextObject = UnsafeMutablePointer<Void>(unsafeAddressOf(self))
-        
-//        var contextObject: UnsafeMutablePointer<Void> = nil
-
-        
-        
-        var contextObject: UnsafeMutablePointer<Void> = UnsafeMutablePointer<Void>(Unmanaged.passUnretained(self).toOpaque())
-        
-        typealias AudioFileStream_PropertyListenerProc = @convention(c) (UnsafeMutablePointer<Void>, AudioFileStreamID, AudioFileStreamPropertyID, UnsafeMutablePointer<AudioFileStreamPropertyFlags>) -> Void
-        
-        let inPropertyListenerProc: AudioFileStream_PropertyListenerProc = {
-            (inContext, streamID, inPropertyID, propertyFlags) -> Void in
-            // this is the callback that gets called when there's a new property
-            // probably log some of this stuff to start
-            
-            let mySelf = Unmanaged<LMAudioPlayer>.fromOpaque(COpaquePointer(inContext)).takeUnretainedValue()
-            
-            mySelf.didChangeProperty(inPropertyID, flags: propertyFlags)
-            
-        }
-        
-        typealias AudioFileStream_PacketsProc = @convention(c) (UnsafeMutablePointer<Void>, UInt32, UInt32, UnsafePointer<Void>, UnsafeMutablePointer<AudioStreamPacketDescription>) -> Void
-        
-        let inPacketsListener: AudioFileStream_PacketsProc = {
-            (inContext, inNumberBytes, inNumberPackets, inInputData, inPacketDescriptions) -> Void in
-            // this is the callback that gets called when there are audio data packets
-            
-            let mySelf = Unmanaged<LMAudioPlayer>.fromOpaque(COpaquePointer(inContext)).takeUnretainedValue()
-            
-            mySelf.didReceivePackets(inInputData, packetDescriptions: inPacketDescriptions, numberOfPackets: inNumberPackets, numberOfBytes: inNumberBytes)
-            
-        }
-        
-        // you can set this to something other than nil if you want to pass information to the callbacks in their inContext arguments
-        //    let contextObject: UnsafeMutablePointer<Void> = nil
-        
-        
-        let status = AudioFileStreamOpen(contextObject, inPropertyListenerProc, inPacketsListener, 0,&audioFileStreamID)
-        
-        
-        print(status.description)
-        
-        
-        
-    }
-    
-    
-    
-    
-    
-    func createWavOfSelectedSong(song:MPMediaItem) {
-        
-        if let songUrl = song.assetURL {
+        if let songUrl = currentSong.assetURL {
             let asset = AVURLAsset(URL: songUrl)
             
             let outputStream = NSOutputStream(toMemory: ())
@@ -167,11 +132,51 @@ class LMAudioPlayer: NSObject, NSStreamDelegate {
                 print(err.debugDescription)
             }
             
-            print(song.title)
+            print(currentSong.title)
             
         }
         
+//        this is the stuff that was not in the old function...
+        
+        var contextObject: UnsafeMutablePointer<Void> = UnsafeMutablePointer<Void>(Unmanaged.passUnretained(self).toOpaque())
+        
+        typealias AudioFileStream_PropertyListenerProc = @convention(c) (UnsafeMutablePointer<Void>, AudioFileStreamID, AudioFileStreamPropertyID, UnsafeMutablePointer<AudioFileStreamPropertyFlags>) -> Void
+        
+        let inPropertyListenerProc: AudioFileStream_PropertyListenerProc = {
+            (inContext, streamID, inPropertyID, propertyFlags) -> Void in
+            // this is the callback that gets called when there's a new property
+            // probably log some of this stuff to start
+            
+            let mySelf = Unmanaged<LMAudioPlayer>.fromOpaque(COpaquePointer(inContext)).takeUnretainedValue()
+            
+            mySelf.didChangeProperty(inPropertyID, flags: propertyFlags)
+            
+        }
+        
+        typealias AudioFileStream_PacketsProc = @convention(c) (UnsafeMutablePointer<Void>, UInt32, UInt32, UnsafePointer<Void>, UnsafeMutablePointer<AudioStreamPacketDescription>) -> Void
+        
+        let inPacketsListener: AudioFileStream_PacketsProc = {
+            (inContext, inNumberBytes, inNumberPackets, inInputData, inPacketDescriptions) -> Void in
+            // this is the callback that gets called when there are audio data packets
+            
+            let mySelf = Unmanaged<LMAudioPlayer>.fromOpaque(COpaquePointer(inContext)).takeUnretainedValue()
+            
+            mySelf.didReceivePackets(inInputData, packetDescriptions: inPacketDescriptions, numberOfPackets: inNumberPackets, numberOfBytes: inNumberBytes)
+            
+        }
+        
+        // you can set this to something other than nil if you want to pass information to the callbacks in their inContext arguments
+        //    let contextObject: UnsafeMutablePointer<Void> = nil
+        
+        
+        let status = AudioFileStreamOpen(contextObject, inPropertyListenerProc, inPacketsListener, 0,&audioFileStreamID)
+        
+        print(status.description)
+        
+        
+        
     }
+    
     
 }
 
