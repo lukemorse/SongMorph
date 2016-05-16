@@ -24,7 +24,7 @@ class LMAudioPlayer: NSObject, NSStreamDelegate {
     
     var basicDescription: AudioStreamBasicDescription!
     
-    let audioQueue = AudioQueueRef()
+    var audioQueue: AudioQueueRef = nil
     
     let outputSettings: [String:Int] =
         [ AVFormatIDKey: Int(kAudioFormatLinearPCM),
@@ -75,16 +75,20 @@ class LMAudioPlayer: NSObject, NSStreamDelegate {
     
     func createAudioQueue() {
         
-//        var unsafe = UnsafePointer<AudioStreamBasicDescription>(basicDescription)
-        
-        var output = AudioQueueNewOutput(basicDescription, AudioQueueOutputCallback, data, nil, nil, 0, &audioQueue)
+        let outputCallback : AudioQueueOutputCallback = {
+            (inUserData, inAQ, inBuffer) -> Void in
+            let mySelf = Unmanaged<LMAudioPlayer>.fromOpaque(COpaquePointer(inUserData)).takeUnretainedValue()
+
+        }
+        let unsafeDescription = UnsafePointer<AudioStreamBasicDescription>(nil)
+        let contextObject: UnsafeMutablePointer<Void> = UnsafeMutablePointer<Void>(Unmanaged.passUnretained(self).toOpaque())
+
+        var output = AudioQueueNewOutput(unsafeDescription, outputCallback, contextObject, nil, nil, 0, &audioQueue)
         
         
         
         
     }
-    
-    typealias AudioQueueOutputCallback = (UnsafeMutablePointer<Void>, AudioQueueRef, AudioQueueBufferRef) -> Void
     
     func openAudioStream() {
         
@@ -140,8 +144,6 @@ class LMAudioPlayer: NSObject, NSStreamDelegate {
         
         var contextObject: UnsafeMutablePointer<Void> = UnsafeMutablePointer<Void>(Unmanaged.passUnretained(self).toOpaque())
         
-        typealias AudioFileStream_PropertyListenerProc = @convention(c) (UnsafeMutablePointer<Void>, AudioFileStreamID, AudioFileStreamPropertyID, UnsafeMutablePointer<AudioFileStreamPropertyFlags>) -> Void
-        
         let inPropertyListenerProc: AudioFileStream_PropertyListenerProc = {
             (inContext, streamID, inPropertyID, propertyFlags) -> Void in
             // this is the callback that gets called when there's a new property
@@ -152,8 +154,6 @@ class LMAudioPlayer: NSObject, NSStreamDelegate {
             mySelf.didChangeProperty(inPropertyID, flags: propertyFlags)
             
         }
-        
-        typealias AudioFileStream_PacketsProc = @convention(c) (UnsafeMutablePointer<Void>, UInt32, UInt32, UnsafePointer<Void>, UnsafeMutablePointer<AudioStreamPacketDescription>) -> Void
         
         let inPacketsListener: AudioFileStream_PacketsProc = {
             (inContext, inNumberBytes, inNumberPackets, inInputData, inPacketDescriptions) -> Void in
