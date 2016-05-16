@@ -22,8 +22,6 @@ class LMAudioPlayer: NSObject, NSStreamDelegate {
     
     var data: UnsafePointer<Void> = nil
     
-    var basicDescription: AudioStreamBasicDescription!
-    
     var audioQueue: AudioQueueRef = nil
     
     let outputSettings: [String:Int] =
@@ -57,36 +55,31 @@ class LMAudioPlayer: NSObject, NSStreamDelegate {
         
         if property == kAudioFileStreamProperty_ReadyToProducePackets {
             
-            basicDescription = AudioStreamBasicDescription()
+            var basicDescription = AudioStreamBasicDescription()
             var basicDescriptionSize = sizeofValue(basicDescription)
             
             var basicDescriptionSize32 = UInt32(basicDescriptionSize)
             
             AudioFileStreamGetProperty(audioFileStreamID, kAudioFileStreamProperty_DataFormat, &basicDescriptionSize32, &basicDescription)
             
-            createAudioQueue()
+            let outputCallback : AudioQueueOutputCallback = {
+                (inUserData, inAQ, inBuffer) -> Void in
+                let mySelf = Unmanaged<LMAudioPlayer>.fromOpaque(COpaquePointer(inUserData)).takeUnretainedValue()
+                
+            }
+            let contextObject: UnsafeMutablePointer<Void> = UnsafeMutablePointer<Void>(Unmanaged.passUnretained(self).toOpaque())
+            
+            var output: OSStatus = withUnsafeMutablePointer(&basicDescription) {
+                (unsafeDescription) -> OSStatus in
+                return AudioQueueNewOutput(unsafeDescription, outputCallback, contextObject, nil, nil, 0, &audioQueue)
+            }
+            
         }
     }
     
     func didReceivePackets(inputData: UnsafePointer<Void>, packetDescriptions: UnsafeMutablePointer<AudioStreamPacketDescription>, numberOfPackets: UInt32, numberOfBytes: UInt32) {
         
         data = inputData
-    }
-    
-    func createAudioQueue() {
-        
-        let outputCallback : AudioQueueOutputCallback = {
-            (inUserData, inAQ, inBuffer) -> Void in
-            let mySelf = Unmanaged<LMAudioPlayer>.fromOpaque(COpaquePointer(inUserData)).takeUnretainedValue()
-
-        }
-        let contextObject: UnsafeMutablePointer<Void> = UnsafeMutablePointer<Void>(Unmanaged.passUnretained(self).toOpaque())
-        
-        var output: OSStatus = withUnsafeMutablePointer(&basicDescription!) {
-            (unsafeDescription) -> OSStatus in
-            return AudioQueueNewOutput(unsafeDescription, outputCallback, contextObject, nil, nil, 0, &audioQueue)
-        }
-
     }
     
     func openAudioStream() {
