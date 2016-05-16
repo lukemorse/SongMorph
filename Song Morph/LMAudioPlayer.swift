@@ -80,14 +80,13 @@ class LMAudioPlayer: NSObject, NSStreamDelegate {
             let mySelf = Unmanaged<LMAudioPlayer>.fromOpaque(COpaquePointer(inUserData)).takeUnretainedValue()
 
         }
-        let unsafeDescription = UnsafePointer<AudioStreamBasicDescription>(nil)
         let contextObject: UnsafeMutablePointer<Void> = UnsafeMutablePointer<Void>(Unmanaged.passUnretained(self).toOpaque())
+        
+        var output: OSStatus = withUnsafeMutablePointer(&basicDescription!) {
+            (unsafeDescription) -> OSStatus in
+            return AudioQueueNewOutput(unsafeDescription, outputCallback, contextObject, nil, nil, 0, &audioQueue)
+        }
 
-        var output = AudioQueueNewOutput(unsafeDescription, outputCallback, contextObject, nil, nil, 0, &audioQueue)
-        
-        
-        
-        
     }
     
     func openAudioStream() {
